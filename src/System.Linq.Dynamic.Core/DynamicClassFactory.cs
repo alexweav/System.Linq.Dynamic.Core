@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq.Dynamic.Core.Util;
 using System.Linq.Dynamic.Core.Validation;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -33,14 +34,14 @@ namespace System.Linq.Dynamic.Core
         private static readonly CustomAttributeBuilder DebuggerHiddenAttributeBuilder = new CustomAttributeBuilder(typeof(DebuggerHiddenAttribute).GetConstructor(EmptyTypes), new object[0]);
 
         private static readonly ConstructorInfo ObjectCtor = typeof(object).GetConstructor(EmptyTypes);
-#if WINDOWS_APP || DOTNET5_1 || UAP10_0 || NETSTANDARD
+#if WINDOWS_APP ||  UAP10_0 || NETSTANDARD
         private static readonly MethodInfo ObjectToString = typeof(object).GetMethod("ToString", BindingFlags.Instance | BindingFlags.Public);
 #else
         private static readonly MethodInfo ObjectToString = typeof(object).GetMethod("ToString", BindingFlags.Instance | BindingFlags.Public, null, EmptyTypes, null);
 #endif
 
         private static readonly ConstructorInfo StringBuilderCtor = typeof(StringBuilder).GetConstructor(EmptyTypes);
-#if WINDOWS_APP || DOTNET5_1 || UAP10_0 || NETSTANDARD
+#if WINDOWS_APP ||  UAP10_0 || NETSTANDARD
         private static readonly MethodInfo StringBuilderAppendString = typeof(StringBuilder).GetMethod("Append", new[] { typeof(string) });
         private static readonly MethodInfo StringBuilderAppendObject = typeof(StringBuilder).GetMethod("Append", new[] { typeof(object) });
 #else
@@ -50,7 +51,7 @@ namespace System.Linq.Dynamic.Core
 
         private static readonly Type EqualityComparer = typeof(EqualityComparer<>);
         private static readonly Type EqualityComparerGenericArgument = EqualityComparer.GetGenericArguments()[0];
-#if WINDOWS_APP || DOTNET5_1 || UAP10_0 || NETSTANDARD
+#if WINDOWS_APP ||  UAP10_0 || NETSTANDARD
         private static readonly MethodInfo EqualityComparerDefault = EqualityComparer.GetMethod("get_Default", BindingFlags.Static | BindingFlags.Public);
         private static readonly MethodInfo EqualityComparerEquals = EqualityComparer.GetMethod("Equals", new[] { EqualityComparerGenericArgument, EqualityComparerGenericArgument });
         private static readonly MethodInfo EqualityComparerGetHashCode = EqualityComparer.GetMethod("GetHashCode", new[] { EqualityComparerGenericArgument });
@@ -223,33 +224,37 @@ namespace System.Linq.Dynamic.Core
 
                         for (int i = 0; i < names.Length; i++)
                         {
-                            Type equalityComparerT = EqualityComparer.MakeGenericType(generics[i].AsType());
+                            // https://github.com/zzzprojects/System.Linq.Dynamic.Core/issues/516
+                            if (!RuntimeInformationUtils.IsBlazorWASM)
+                            {
+                                Type equalityComparerT = EqualityComparer.MakeGenericType(generics[i].AsType());
 
-                            // Equals()
-                            MethodInfo equalityComparerTDefault = TypeBuilder.GetMethod(equalityComparerT, EqualityComparerDefault);
-                            MethodInfo equalityComparerTEquals = TypeBuilder.GetMethod(equalityComparerT, EqualityComparerEquals);
+                                // Equals()
+                                MethodInfo equalityComparerTDefault = TypeBuilder.GetMethod(equalityComparerT, EqualityComparerDefault);
+                                MethodInfo equalityComparerTEquals = TypeBuilder.GetMethod(equalityComparerT, EqualityComparerEquals);
 
-                            // Illegal one-byte branch at position: 9. Requested branch was: 143.
-                            // So replace OpCodes.Brfalse_S to OpCodes.Brfalse
-                            ilgeneratorEquals.Emit(OpCodes.Brfalse, equalsLabel);
-                            ilgeneratorEquals.Emit(OpCodes.Call, equalityComparerTDefault);
-                            ilgeneratorEquals.Emit(OpCodes.Ldarg_0);
-                            ilgeneratorEquals.Emit(OpCodes.Ldfld, fields[i]);
-                            ilgeneratorEquals.Emit(OpCodes.Ldloc_0);
-                            ilgeneratorEquals.Emit(OpCodes.Ldfld, fields[i]);
-                            ilgeneratorEquals.Emit(OpCodes.Callvirt, equalityComparerTEquals);
+                                // Illegal one-byte branch at position: 9. Requested branch was: 143.
+                                // So replace OpCodes.Brfalse_S to OpCodes.Brfalse
+                                ilgeneratorEquals.Emit(OpCodes.Brfalse, equalsLabel);
+                                ilgeneratorEquals.Emit(OpCodes.Call, equalityComparerTDefault);
+                                ilgeneratorEquals.Emit(OpCodes.Ldarg_0);
+                                ilgeneratorEquals.Emit(OpCodes.Ldfld, fields[i]);
+                                ilgeneratorEquals.Emit(OpCodes.Ldloc_0);
+                                ilgeneratorEquals.Emit(OpCodes.Ldfld, fields[i]);
+                                ilgeneratorEquals.Emit(OpCodes.Callvirt, equalityComparerTEquals);
 
-                            // GetHashCode();
-                            MethodInfo equalityComparerTGetHashCode = TypeBuilder.GetMethod(equalityComparerT, EqualityComparerGetHashCode);
-                            ilgeneratorGetHashCode.Emit(OpCodes.Stloc_0);
-                            ilgeneratorGetHashCode.Emit(OpCodes.Ldc_I4, -1521134295);
-                            ilgeneratorGetHashCode.Emit(OpCodes.Ldloc_0);
-                            ilgeneratorGetHashCode.Emit(OpCodes.Mul);
-                            ilgeneratorGetHashCode.Emit(OpCodes.Call, equalityComparerTDefault);
-                            ilgeneratorGetHashCode.Emit(OpCodes.Ldarg_0);
-                            ilgeneratorGetHashCode.Emit(OpCodes.Ldfld, fields[i]);
-                            ilgeneratorGetHashCode.Emit(OpCodes.Callvirt, equalityComparerTGetHashCode);
-                            ilgeneratorGetHashCode.Emit(OpCodes.Add);
+                                // GetHashCode();
+                                MethodInfo equalityComparerTGetHashCode = TypeBuilder.GetMethod(equalityComparerT, EqualityComparerGetHashCode);
+                                ilgeneratorGetHashCode.Emit(OpCodes.Stloc_0);
+                                ilgeneratorGetHashCode.Emit(OpCodes.Ldc_I4, -1521134295);
+                                ilgeneratorGetHashCode.Emit(OpCodes.Ldloc_0);
+                                ilgeneratorGetHashCode.Emit(OpCodes.Mul);
+                                ilgeneratorGetHashCode.Emit(OpCodes.Call, equalityComparerTDefault);
+                                ilgeneratorGetHashCode.Emit(OpCodes.Ldarg_0);
+                                ilgeneratorGetHashCode.Emit(OpCodes.Ldfld, fields[i]);
+                                ilgeneratorGetHashCode.Emit(OpCodes.Callvirt, equalityComparerTGetHashCode);
+                                ilgeneratorGetHashCode.Emit(OpCodes.Add);
+                            }
 
                             // ToString();
                             ilgeneratorToString.Emit(OpCodes.Ldloc_0);

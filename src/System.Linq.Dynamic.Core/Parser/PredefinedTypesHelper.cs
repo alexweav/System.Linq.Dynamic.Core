@@ -1,11 +1,14 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Dynamic.Core.Validation;
+using System.Text.RegularExpressions;
 
 namespace System.Linq.Dynamic.Core.Parser
 {
     internal static class PredefinedTypesHelper
     {
+        private static readonly string Version = Regex.Match(typeof(PredefinedTypesHelper).AssemblyQualifiedName, @"\d+\.\d+\.\d+\.\d+").ToString();
+
         // These shorthands have different name than actual type and therefore not recognized by default from the PredefinedTypes.
         public static readonly IDictionary<string, Type> PredefinedTypesShorthands = new Dictionary<string, Type>
         {
@@ -46,7 +49,7 @@ namespace System.Linq.Dynamic.Core.Parser
 
         static PredefinedTypesHelper()
         {
-#if !(NET35 || SILVERLIGHT || NETFX_CORE || WINDOWS_APP || DOTNET5_1 || UAP10_0 || NETSTANDARD)
+#if !(NET35 || SILVERLIGHT || NETFX_CORE || WINDOWS_APP ||  UAP10_0 || NETSTANDARD)
             //System.Data.Entity is always here, so overwrite short name of it with EntityFramework if EntityFramework is found.
             //EF5(or 4.x??), System.Data.Objects.DataClasses.EdmFunctionAttribute
             //There is also an System.Data.Entity, Version=3.5.0.0, but no Functions.
@@ -63,7 +66,7 @@ namespace System.Linq.Dynamic.Core.Parser
 #endif
 
 #if NETSTANDARD2_0
-            TryAdd("Microsoft.EntityFrameworkCore.DynamicLinq.DynamicFunctions, Microsoft.EntityFrameworkCore.DynamicLinq, Version=1.0.0.0, Culture=neutral, PublicKeyToken=974e7e1b462f3693", 3);
+            TryAdd($"Microsoft.EntityFrameworkCore.DynamicLinq.DynamicFunctions, Microsoft.EntityFrameworkCore.DynamicLinq, Version={Version}, Culture=neutral, PublicKeyToken=974e7e1b462f3693", 3);
 #endif
         }
 
@@ -88,12 +91,14 @@ namespace System.Linq.Dynamic.Core.Parser
             Check.NotNull(config, nameof(config));
             Check.NotNull(type, nameof(type));
 
-            if (PredefinedTypes.ContainsKey(type))
+            var nonNullableType = TypeHelper.GetNonNullableType(type);
+            if (PredefinedTypes.ContainsKey(nonNullableType))
             {
                 return true;
             }
 
-            return config.CustomTypeProvider != null && config.CustomTypeProvider.GetCustomTypes().Contains(type);
+            return config.CustomTypeProvider != null &&
+                   (config.CustomTypeProvider.GetCustomTypes().Contains(type) || config.CustomTypeProvider.GetCustomTypes().Contains(nonNullableType));
         }
     }
 }

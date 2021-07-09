@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+    <Import Project="../../version.xml" />
+    
+    <PropertyGroup>
+        <Version>3.2.$(PatchVersion)</Version>
+        <Description>Dynamic Linq extensions for Microsoft.EntityFrameworkCore which adds Async support</Description>
+        <AssemblyTitle>Microsoft.EntityFrameworkCore.DynamicLinq</AssemblyTitle>
+        <Authors>ZZZ Projects;Stef Heyenrath</Authors>
+        <TargetFrameworks>netstandard2.0</TargetFrameworks>
+        <DefineConstants>$(DefineConstants);EFCORE;EFCORE_3X;EFDYNAMICFUNCTIONS</DefineConstants>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <AssemblyName>Microsoft.EntityFrameworkCore.DynamicLinq</AssemblyName>
+        <AssemblyOriginatorKeyFile>../Microsoft.EntityFrameworkCore.DynamicLinq.EFCore2/Microsoft.EntityFrameworkCore.DynamicLinq.snk</AssemblyOriginatorKeyFile>
+        <SignAssembly>true</SignAssembly>
+        <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+        <PackageTags>system;linq;dynamic;entityframework;core;async</PackageTags>
+        <PackageReleaseNotes>Bugfixes and new Features. For details see CHANGELOG.md</PackageReleaseNotes>
+        <PackageProjectUrl>https://dynamic-linq.net/</PackageProjectUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageIconUrl>https://zzzprojects.github.io/images/logo/logo-64.png</PackageIconUrl>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/zzzprojects/System.Linq.Dynamic.Core</RepositoryUrl>
+        <DefaultLanguage>en-us</DefaultLanguage>
+        <ProjectGuid>{7994FECC-965C-4A5D-8B0E-1A6EA769D4BE}</ProjectGuid>
+        <DebugType>full</DebugType>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+        <Company>ZZZ Projects</Company>
+        <Copyright>Copyright © ZZZ Projects</Copyright>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(buildType)' == 'azure-pipelines-ci' ">
+        <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <!--<IncludeSource>True</IncludeSource>
+        <IncludeSymbols>True</IncludeSymbols>
+        <PathMap>$(MSBuildProjectDirectory)=/</PathMap>-->
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="..\System.Linq.Dynamic.Core\Res.cs" />
+        <Compile Include="..\System.Linq.Dynamic.Core\Compatibility\*.cs" />
+        <Compile Include="..\System.Linq.Dynamic.Core\Extensions\*.cs" />
+        <Compile Include="..\System.Linq.Dynamic.Core\Validation\*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\System.Linq.Dynamic.Core\System.Linq.Dynamic.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" PrivateAssets="All" />
+    </ItemGroup>
+
+    <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" />
+    </ItemGroup>
+	
+</Project>

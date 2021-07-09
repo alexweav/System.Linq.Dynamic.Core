@@ -1,7 +1,19 @@
+### Library Powered By
+
+This library is powered by [Entity Framework Extensions](https://entityframework-extensions.net/?z=github&y=system.linq.dynamic.core)
+
+<a href="https://entityframework-extensions.net/?z=github&y=system.linq.dynamic.core">
+<kbd>
+<img src="https://zzzprojects.github.io/images/logo/entityframework-extensions-pub.jpg" alt="Entity Framework Extensions" />
+</kbd>
+</a>
+
+---
+
 # System.Linq.Dynamic.Core
 This is a **.NET Core / Standard port** of the Microsoft assembly for the .Net 4.0 Dynamic language functionality.
 
-# Overview
+## Overview
 With this library it's possible to write Dynamic LINQ queries (string based) on an `IQueryable`:
 ``` c#
 var query = db.Customers
@@ -10,13 +22,14 @@ var query = db.Customers
     .Select("new(CompanyName as Name, Phone)");
 ```
 
-# How to use
-There are several documentation resources:
-- [Wiki][doc-wiki] : an overview from the basic functionality  (correctness ~ 80%)
-- [API Documentation][doc-api] : a low-level API description website with some code samples
-- DynamicLinqWebDocs (TODO)
+## Useful links
 
-# Info
+- [Website](https://dynamic-linq.net/)
+- [Documentation](https://dynamic-linq.net/overview)
+- [Online examples](https://dynamic-linq.net/online-examples)
+- [nuget](https://www.nuget.org/packages/System.Linq.Dynamic.Core/) 
+
+## Info
 | | |
 | --- | --- |
 | ***Project*** | &nbsp; |
@@ -24,33 +37,24 @@ There are several documentation resources:
 | &nbsp;&nbsp;**Issues** | [![GitHub issues](https://img.shields.io/github/issues/StefH/System.Linq.Dynamic.Core.svg)](https://github.com/StefH/System.Linq.Dynamic.Core/issues) |
 | | |
 | ***Quality*** | &nbsp; |
-| &nbsp;&nbsp;**Build Azure** | [![Build Status Azure](https://stef.visualstudio.com/System.Linq.Dynamic.Core/_apis/build/status/StefH.System.Linq.Dynamic.Core)](https://stef.visualstudio.com/System.Linq.Dynamic.Core/_build/latest?definitionId=12) |
-| &nbsp;&nbsp;**CodeFactor** | [![CodeFactor](https://www.codefactor.io/repository/github/stefh/system.linq.dynamic.core/badge)](https://www.codefactor.io/repository/github/stefh/system.linq.dynamic.core)
-| &nbsp;&nbsp;**Sonar Quality Gate** | [![Sonar Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=system.linq.dynamic.core&metric=alert_status)](https://sonarcloud.io/project/issues?id=system.linq.dynamic.core) |
-| &nbsp;&nbsp;**Sonar Bugs** | [![Sonar Bugs](https://sonarcloud.io/api/project_badges/measure?project=system.linq.dynamic.core&metric=bugs)](https://sonarcloud.io/project/issues?id=system.linq.dynamic.core&resolved=false&types=BUG) |
-| &nbsp;&nbsp;**Sonar Code Smells** | [![Sonar Code Smells](https://sonarcloud.io/api/project_badges/measure?project=system.linq.dynamic.core&metric=code_smells)](https://sonarcloud.io/project/issues?id=system.linq.dynamic.core&resolved=false&types=CODE_SMELL) |
-| &nbsp;&nbsp;**Sonar Coverage** | [![Sonar Coverage](https://sonarcloud.io/api/project_badges/measure?project=system.linq.dynamic.core&metric=coverage)](https://sonarcloud.io/component_measures?id=system.linq.dynamic.core&metric=coverage) |
-| &nbsp;&nbsp;**Codecov** | [![codecov](https://codecov.io/gh/StefH/System.Linq.Dynamic.Core/branch/master/graph/badge.svg)](https://codecov.io/gh/StefH/System.Linq.Dynamic.Core) |
-| &nbsp;&nbsp;**Coveralls** | [![Coverage Status](https://coveralls.io/repos/github/StefH/System.Linq.Dynamic.Core/badge.svg?branch=master)](https://coveralls.io/github/StefH/System.Linq.Dynamic.Core?branch=master) |
+| &nbsp;&nbsp;**Main workflow** | ![Main workflow](https://github.com/zzzprojects/System.Linq.Dynamic.Core/workflows/Main%20workflow/badge.svg) |
 | |
-| ***Nuget*** | &nbsp; |
+| ***NuGet*** | &nbsp; |
 | &nbsp;&nbsp;**System.Linq.Dynamic.Core** | [![NuGet](https://buildstats.info/nuget/System.Linq.Dynamic.Core)](https://www.nuget.org/packages/System.Linq.Dynamic.Core) |
 | &nbsp;&nbsp;**EntityFramework.DynamicLinq** | [![NuGet](https://buildstats.info/nuget/EntityFramework.DynamicLinq)](https://www.nuget.org/packages/EntityFramework.DynamicLinq) |
 | &nbsp;&nbsp;**Microsoft.EntityFrameworkCore.DynamicLinq** | [![NuGet](https://buildstats.info/nuget/Microsoft.EntityFrameworkCore.DynamicLinq)](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.DynamicLinq) |
-| ***MyGet (previews)*** | &nbsp; |
-| &nbsp;&nbsp;**System.Linq.Dynamic.Core** | [![MyGet](https://buildstats.info/myget/system-linq-dynamic-core/System.Linq.Dynamic.Core)](https://www.myget.org/feed/system-linq-dynamic-core/package/nuget/System.Linq.Dynamic.Core) |
-| &nbsp;&nbsp;**EntityFramework.DynamicLinq** | [![MyGet](https://buildstats.info/myget/system-linq-dynamic-core/EntityFramework.DynamicLinq)](https://www.myget.org/feed/system-linq-dynamic-core/package/nuget/EntityFramework.DynamicLinq) |
-| &nbsp;&nbsp;**Microsoft.EntityFrameworkCore.DynamicLinq** | [![MyGet](https://buildstats.info/myget/system-linq-dynamic-core/Microsoft.EntityFrameworkCore.DynamicLinq)](https://www.myget.org/feed/system-linq-dynamic-core/package/nuget/Microsoft.EntityFrameworkCore.DynamicLinq) |
+| &nbsp;&nbsp;**Z.EntityFramework.Classic.DynamicLinq** | [![NuGet](https://buildstats.info/nuget/Z.EntityFramework.Classic.DynamicLinq)](https://www.nuget.org/packages/Z.EntityFramework.Classic.DynamicLinq) |
 
-# Development Details
+## Development Details
 
-## Frameworks
+### Frameworks
 The following frameworks are supported:
 - net35, net40, net45, net46 and up
-- netstandard1.3 & netstandard2.0
-- uap10.0 (UAP 10.0.14393.0)
+- netstandard1.3, netstandard2.0 and netstandard2.1
+- netcoreapp3.1 and net5.0
+- uap10.0
 
-## Fork details
+### Fork details
 This fork takes the basic library to a new level. Contains XML Documentation and examples on how to use it. Also adds unit testing to help ensure that it works properly.
 
 Some background:
@@ -75,5 +79,40 @@ However, currently there are multiple nuget packages and projects available:
 [5a]: https://dynamiclinq.codeplex.com/
 [6a]: http://weblogs.asp.net/scottgu/dynamic-linq-part-1-using-the-linq-dynamic-query-library
 
-[doc-api]: http://stefh.github.io/System.Linq.Dynamic.Core
-[doc-wiki]: https://github.com/StefH/System.Linq.Dynamic.Core/wiki/Dynamic-Expressions
+[doc-api]: http://zzzprojects.github.io/System.Linq.Dynamic.Core
+[doc-wiki]: https://github.com/zzzprojects/System.Linq.Dynamic.Core/wiki/Dynamic-Expressions
+
+## Contribute
+
+Want to help us? Your donation directly helps us maintain and grow ZZZ Free Projects. 
+
+We can't thank you enough for your support 🙏.
+
+👍 [One-time donation](https://zzzprojects.com/contribute)
+
+❤️ [Become a sponsor](https://github.com/sponsors/zzzprojects) 
+
+### Why should I contribute to this free & open-source library?
+We all love free and open-source libraries! But there is a catch... nothing is free in this world.
+
+We NEED your help. Last year alone, we spent over **3000 hours** maintaining all our open source libraries.
+
+Contributions allow us to spend more of our time on: Bug Fix, Development, Documentation, and Support.
+
+### How much should I contribute?
+Any amount is much appreciated. All our free libraries together have more than **100 million** downloads.
+
+If everyone could contribute a tiny amount, it would help us make the .NET community a better place to code!
+
+Another great free way to contribute is  **spreading the word** about the library.
+
+A **HUGE THANKS** for your help!
+
+## More Projects
+
+- [EntityFramework Extensions](https://entityframework-extensions.net/)
+- [Dapper Plus](https://dapper-plus.net/)
+- [C# Eval Expression](https://eval-expression.net/)
+- and much more! 
+
+To view all our free and paid projects, visit our [website](https://zzzprojects.com/).

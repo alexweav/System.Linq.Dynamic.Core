@@ -53,5 +53,35 @@ namespace System.Linq.Dynamic.Core.Tests
             //Assert
             Assert.Equal(expected, result);
         }
+
+        [Fact]
+        public void Count_Dynamic_Select()
+        {
+            // Arrange
+            IQueryable<User> queryable = User.GenerateSampleModels(1).AsQueryable();
+
+            // Act
+            var expected = queryable.Select(x => x.Roles.Count()).ToArray();
+            var result = queryable.Select("Roles.Count()").ToDynamicArray<int>();
+
+            // Assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void Count_Dynamic_Where()
+        {
+            const string search = "e";
+
+            // Arrange
+            var testList = User.GenerateSampleModels(10);
+            var queryable = testList.AsQueryable();
+
+            // Act
+            var expected = queryable.Where(u => u.Roles.Count(r => r.Name.Contains(search)) > 0).ToArray();
+            var result = queryable.Where("Roles.Count(Name.Contains(@0)) > 0", search).ToArray();
+
+            Assert.Equal(expected, result);
+        }
     }
 }

@@ -1,6 +1,8 @@
-﻿using NFluent;
+﻿using System.Collections.Generic;
 using System.Linq.Dynamic.Core.Exceptions;
 using System.Linq.Dynamic.Core.Tests.Entities;
+using FluentAssertions;
+using NFluent;
 using Xunit;
 
 namespace System.Linq.Dynamic.Core.Tests
@@ -42,7 +44,7 @@ namespace System.Linq.Dynamic.Core.Tests
         }
 
         [Fact]
-        public void OfType_Dynamic()
+        public void OfType_Dynamic_WithFullName()
         {
             // Assign
             var qry = new[]
@@ -59,6 +61,29 @@ namespace System.Linq.Dynamic.Core.Tests
             // Act
             var oftype = qry.Select(c => c.Employees.OfType<Worker>().Where(e => e.Name == "e")).ToArray();
             var oftypeDynamic = qry.Select("Employees.OfType(\"System.Linq.Dynamic.Core.Tests.Entities.Worker\").Where(Name == \"e\")").ToDynamicArray();
+
+            // Assert
+            Check.That(oftypeDynamic.Length).Equals(oftype.Length);
+        }
+
+        [Fact]
+        public void OfType_Dynamic_WithType()
+        {
+            // Assign
+            var qry = new[]
+            {
+                new CompanyWithBaseEmployees
+                {
+                    Employees = new BaseEmployee[]
+                    {
+                        new Worker { Name = "e" }, new Boss { Name = "e" }
+                    }
+                }
+            }.AsQueryable();
+
+            // Act
+            var oftype = qry.Select(c => c.Employees.OfType<Worker>().Where(e => e.Name == "e")).ToArray();
+            var oftypeDynamic = qry.Select("Employees.OfType(@0).Where(Name == \"e\")", typeof(Worker)).ToDynamicArray();
 
             // Assert
             Check.That(oftypeDynamic.Length).Equals(oftype.Length);
@@ -104,6 +129,23 @@ namespace System.Linq.Dynamic.Core.Tests
         }
 
         [Fact]
+        public void Is_Dynamic_ActingOnIt_WithType()
+        {
+            // Assign
+            var qry = new BaseEmployee[]
+            {
+                new Worker { Name = "1" }, new Boss { Name = "b" }
+            }.AsQueryable();
+
+            // Act
+            int countOfType = qry.Count(c => c is Worker);
+            int countOfTypeDynamic = qry.Count("is(@0)", typeof(Worker));
+
+            // Assert
+            Check.That(countOfTypeDynamic).Equals(countOfType);
+        }
+
+        [Fact]
         public void As_Dynamic_ActingOnIt()
         {
             // Assign
@@ -117,6 +159,48 @@ namespace System.Linq.Dynamic.Core.Tests
 
             // Assert
             Check.That(countAsDynamic).Equals(1);
+        }
+
+        [Fact]
+        public void As_Dynamic_ActingOnIt_WithType()
+        {
+            // Assign
+            var qry = new BaseEmployee[]
+            {
+                new Worker { Name = "1" }, new Boss { Name = "b" }
+            }.AsQueryable();
+
+            // Act
+            int countAsDynamic = qry.Count("As(@0) != null", typeof(Worker));
+
+            // Assert
+            Check.That(countAsDynamic).Equals(1);
+        }
+
+        public class AS_A { }
+        public class AS_B : AS_A
+        {
+            public string MyProperty { get; set; }
+        }
+
+        [Fact]
+        [Trait("bug", "452")]
+        public void As_UnaryExpression()
+        {
+            // Arrange
+            var a = new AS_A();
+            var b = new AS_B { MyProperty = "x" };
+            var lst = new List<AS_A>()
+            {
+                a,
+                b
+            };
+
+            // Act
+            var result = lst.AsQueryable().Where($"np(as(\"{typeof(AS_B).FullName}\").MyProperty) = \"x\"");
+
+            // Assert
+            result.ToDynamicArray().Should().HaveCount(1).And.Contain(b);
         }
 
         [Fact]
@@ -177,6 +261,29 @@ namespace System.Linq.Dynamic.Core.Tests
         }
 
         [Fact]
+        public void CastToType_Dynamic_WithType()
+        {
+            // Assign
+            var qry = new[]
+            {
+                new CompanyWithBaseEmployees
+                {
+                    Employees = new BaseEmployee[]
+                    {
+                        new Worker { Name = "e" }
+                    }
+                }
+            }.AsQueryable();
+
+            // Act
+            var cast = qry.Select(c => c.Employees.Cast<Worker>().Where(e => e.Name == "e")).ToArray();
+            var castDynamic = qry.Select("Employees.Cast(@0).Where(Name == \"e\")", typeof(Worker)).ToDynamicArray();
+
+            // Assert
+            Check.That(cast.Length).Equals(castDynamic.Length);
+        }
+
+        [Fact]
         public void CastToType_Dynamic_ActingOnIt()
         {
             // Assign
@@ -188,6 +295,23 @@ namespace System.Linq.Dynamic.Core.Tests
             // Act
             var cast = qry.Select(c => (Worker)c).ToArray();
             var castDynamic = qry.Select("Cast(\"System.Linq.Dynamic.Core.Tests.Entities.Worker\")").ToDynamicArray();
+
+            // Assert
+            Check.That(cast.Length).Equals(castDynamic.Length);
+        }
+
+        [Fact]
+        public void CastToType_Dynamic_ActingOnIt_WithType()
+        {
+            // Assign
+            var qry = new BaseEmployee[]
+            {
+                new Worker { Name = "1" }, new Worker { Name = "2" }
+            }.AsQueryable();
+
+            // Act
+            var cast = qry.Select(c => (Worker)c).ToArray();
+            var castDynamic = qry.Select("Cast(@0)", typeof(Worker)).ToDynamicArray();
 
             // Assert
             Check.That(cast.Length).Equals(castDynamic.Length);

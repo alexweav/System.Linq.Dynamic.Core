@@ -18,12 +18,17 @@
         public const string DotExpected = "'.' expected";
         public const string DotOrOpenParenExpected = "'.' or '(' expected";
         public const string DotOrOpenParenOrStringLiteralExpected = "'.' or '(' or string literal expected";
+        public const string DynamicExpandoObjectIsNotSupported = "Dynamic / ExpandoObject is not supported in .NET 3.5, UAP and .NETStandard 1.3";
         public const string DuplicateIdentifier = "The identifier '{0}' was defined more than once";
+        public const string EnumTypeNotFound = "Enum type '{0}' not found";
+        public const string EnumValueExpected = "Enum value expected";
+        public const string EnumValueNotDefined = "Enum value '{0}' is not defined in enum type '{1}'";
         public const string ExpressionExpected = "Expression expected";
         public const string ExpressionTypeMismatch = "Expression of type '{0}' expected";
         public const string FirstExprMustBeBool = "The first expression must be of type 'Boolean'";
         public const string FunctionRequiresOneArg = "The '{0}' function requires one argument";
         public const string FunctionRequiresOneNotNullArg = "The '{0}' function requires one argument which is not null.";
+        public const string FunctionRequiresOneNotNullArgOfType = "The '{0}' function requires one argument of type {1} which is not null.";
         public const string HexCharExpected = "Hexadecimal character expected";
         public const string IQueryableProviderNotAsync = "The provider for the source IQueryable doesn't implement IAsyncQueryProvider/IDbAsyncQueryProvider. Only providers that implement IAsyncQueryProvider/IDbAsyncQueryProvider can be used for Entity Framework asynchronous operations.";
         public const string IdentifierExpected = "Identifier expected";
@@ -44,7 +49,7 @@
         public const string MinusCannotBeAppliedToUnsignedInteger = "'-' cannot be applied to unsigned integers.";
         public const string MissingAsClause = "Expression is missing an 'as' clause";
         public const string NeitherTypeConvertsToOther = "Neither of the types '{0}' and '{1}' converts to the other";
-        public const string NoApplicableAggregate = "No applicable aggregate method '{0}' exists";
+        public const string NoApplicableAggregate = "No applicable aggregate method '{0}({1})' exists";
         public const string NoApplicableIndexer = "No applicable indexer exists in type '{0}'";
         public const string NoApplicableMethod = "No applicable method '{0}' exists in type '{1}'";
         public const string NoItInScope = "No 'it' is in scope";
@@ -52,7 +57,7 @@
         public const string NoParentInScope = "No 'parent' is in scope";
         public const string NoRootInScope = "No 'root' is in scope";
         public const string NullPropagationRequiresCorrectArgs = "The 'np' (null-propagation) function requires 1 or 2 arguments";
-        public const string NullPropagationRequiresMemberExpression = "The 'np' (null-propagation) function requires the first argument to be a MemberExpression";
+        public const string NullPropagationRequiresValidExpression = "The 'np' (null-propagation) function requires the first argument to be a MemberExpression, ParameterExpression or MethodCallExpression";
         public const string OpenBracketExpected = "'[' expected";
         public const string OpenCurlyParenExpected = "'{' expected";
         public const string OpenParenExpected = "'(' expected";
@@ -62,6 +67,8 @@
         public const string TokenExpected = "{0} expected";
         public const string TypeHasNoNullableForm = "Type '{0}' has no nullable form";
         public const string TypeNotFound = "Type '{0}' not found";
+        public const string UnexpectedUnclosedString = "Unexpected end of string with unclosed string at position {0} near '{1}'.";
+        public const string UnexpectedUnrecognizedEscapeSequence = "Unexpected unrecognized escape sequence at position {0} near '{1}'.";
         public const string UnknownIdentifier = "Unknown identifier '{0}'";
         public const string UnknownPropertyOrField = "No property or field '{0}' exists in type '{1}'";
         public const string UnterminatedStringLiteral = "Unterminated string literal";

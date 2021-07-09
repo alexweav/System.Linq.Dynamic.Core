@@ -1,9 +1,10 @@
-﻿using JetBrains.Annotations;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq.Dynamic.Core.Validation;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 
 namespace System.Linq.Dynamic.Core.Parser
 {
@@ -219,6 +220,24 @@ namespace System.Linq.Dynamic.Core.Parser
             return null;
         }
 
+        public bool MemberExpressionIsDynamic(Expression expression)
+        {
+#if NET35
+            return false;
+#else
+            return expression is MemberExpression memberExpression && memberExpression.Member.GetCustomAttribute<DynamicAttribute>() != null;
+#endif
+        }
+
+        public Expression ConvertToExpandoObjectAndCreateDynamicExpression(Expression expression, Type type, string propertyName)
+        {
+#if !NET35 && !UAP10_0 && !NETSTANDARD1_3
+            return Expression.Dynamic(new DynamicGetMemberBinder(propertyName, _parsingConfig), type, expression);
+#else
+            throw new NotSupportedException(Res.DynamicExpandoObjectIsNotSupported);
+#endif
+        }
+
         private MethodInfo GetStaticMethod(string methodName, Expression left, Expression right)
         {
             var methodInfo = left.Type.GetMethod(methodName, new[] { left.Type, right.Type });
@@ -244,40 +263,58 @@ namespace System.Linq.Dynamic.Core.Parser
             }
         }
 
-        public Expression GenerateAndAlsoNotNullExpression(Expression sourceExpression)
+        public bool TryGenerateAndAlsoNotNullExpression(Expression sourceExpression, bool addSelf, out Expression generatedExpression)
         {
-            var expresssions = CollectExpressions(sourceExpression);
-            if (!expresssions.Any())
+            var expressions = CollectExpressions(addSelf, sourceExpression);
+
+            if (expressions.Count == 1 && !(expressions[0] is MethodCallExpression))
             {
-                return null;
+                generatedExpression = sourceExpression;
+                return false;
             }
 
             // Reverse the list
-            expresssions.Reverse();
+            expressions.Reverse();
 
-            // Convert all expressions into '!= null'
-            var binaryExpressions = expresssions.Select(expression => Expression.NotEqual(expression, Expression.Constant(null))).ToArray();
+            // Convert all expressions into '!= null' expressions (only if the type can be null)
+            var binaryExpressions = expressions
+                .Where(expression => TypeHelper.TypeCanBeNull(expression.Type))
+                .Select(expression => Expression.NotEqual(expression, Expression.Constant(null)))
+                .ToArray();
 
             // Convert all binary expressions into `AndAlso(...)`
-            var andAlsoExpression = binaryExpressions[0];
+            generatedExpression = binaryExpressions[0];
             for (int i = 1; i < binaryExpressions.Length; i++)
             {
-                andAlsoExpression = Expression.AndAlso(andAlsoExpression, binaryExpressions[i]);
+                generatedExpression = Expression.AndAlso(generatedExpression, binaryExpressions[i]);
             }
 
-            return andAlsoExpression;
+            return true;
         }
 
-        private static Expression GetMemberExpression(Expression expression)
+        public bool ExpressionQualifiesForNullPropagation(Expression expression)
         {
-            if (expression is ParameterExpression parameterExpression)
-            {
-                return parameterExpression;
-            }
+            return
+                expression is MemberExpression ||
+                expression is ParameterExpression ||
+                expression is MethodCallExpression ||
+                expression is UnaryExpression;
+        }
 
-            if (expression is MemberExpression memberExpression)
+        public Expression GenerateDefaultExpression(Type type)
+        {
+#if NET35
+            return Expression.Constant(Activator.CreateInstance(type));
+#else
+            return Expression.Default(type);
+#endif
+        }
+
+        private Expression GetMemberExpression(Expression expression)
+        {
+            if (ExpressionQualifiesForNullPropagation(expression))
             {
-                return memberExpression;
+                return expression;
             }
 
             if (expression is LambdaExpression lambdaExpression)
@@ -287,35 +324,83 @@ namespace System.Linq.Dynamic.Core.Parser
                     return bodyAsMemberExpression;
                 }
 
-                if (lambdaExpression.Body is UnaryExpression bodyAsunaryExpression)
+                if (lambdaExpression.Body is UnaryExpression bodyAsUnaryExpression)
                 {
-                    return bodyAsunaryExpression.Operand;
+                    return bodyAsUnaryExpression.Operand;
                 }
             }
 
             return null;
         }
 
-        private static List<Expression> CollectExpressions(Expression sourceExpression)
+        private List<Expression> CollectExpressions(bool addSelf, Expression sourceExpression)
         {
-            var list = new List<Expression>();
             Expression expression = GetMemberExpression(sourceExpression);
 
-            while (expression is MemberExpression memberExpression)
+            var list = new List<Expression>();
+
+            if (addSelf)
             {
-                expression = GetMemberExpression(memberExpression.Expression);
-                if (expression is MemberExpression)
+                switch (expression)
                 {
-                    list.Add(expression);
+                    case MemberExpression _:
+                        list.Add(sourceExpression);
+                        break;
+
+                    default:
+                        break;
                 }
             }
 
-            if (expression is ParameterExpression)
+            bool expressionRecognized;
+            do
             {
-                list.Add(expression);
-            }
+                switch (expression)
+                {
+                    case MemberExpression memberExpression:
+                        expression = GetMemberExpression(memberExpression.Expression);
+                        expressionRecognized = expression != null;
+                        break;
+
+                    case MethodCallExpression methodCallExpression:
+                        expression = GetMethodCallExpression(methodCallExpression);
+                        expressionRecognized = expression != null;
+                        break;
+
+                    case UnaryExpression unaryExpression:
+                        expression = GetUnaryExpression(unaryExpression);
+                        expressionRecognized = expression != null;
+                        break;
+
+                    default:
+                        expressionRecognized = false;
+                        break;
+                }
+
+                if (expressionRecognized && ExpressionQualifiesForNullPropagation(expression))
+                {
+                    list.Add(expression);
+                }
+            } while (expressionRecognized);
 
             return list;
+        }
+
+        private static Expression GetMethodCallExpression(MethodCallExpression methodCallExpression)
+        {
+            if (methodCallExpression.Object != null)
+            {
+                // Something like: "np(FooValue.Zero().Length)"
+                return methodCallExpression.Object;
+            }
+
+            // Something like: "np(MyClasses.FirstOrDefault())"
+            return methodCallExpression.Arguments.FirstOrDefault();
+        }
+
+        private static Expression GetUnaryExpression(UnaryExpression unaryExpression)
+        {
+            return unaryExpression.Operand;
         }
     }
 }

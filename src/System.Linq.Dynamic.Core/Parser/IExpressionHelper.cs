@@ -28,8 +28,16 @@ namespace System.Linq.Dynamic.Core.Parser
 
         Expression OptimizeStringForEqualityIfPossible(string text, Type type);
 
-        Expression GenerateAndAlsoNotNullExpression(Expression sourceExpression);
+        bool TryGenerateAndAlsoNotNullExpression(Expression sourceExpression, bool addSelf, out Expression generatedExpression);
+
+        bool ExpressionQualifiesForNullPropagation(Expression expression);
 
         void WrapConstantExpression(ref Expression argument);
+
+        bool MemberExpressionIsDynamic(Expression expression);
+
+        Expression ConvertToExpandoObjectAndCreateDynamicExpression(Expression expression, Type type, string propertyName);
+
+        Expression GenerateDefaultExpression(Type type);
     }
 }

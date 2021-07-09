@@ -3,8 +3,22 @@ using System.Reflection;
 
 namespace System.Linq.Dynamic.Core.Parser
 {
+    /// <summary>
+    /// ExpressionPromoter
+    /// </summary>
     public class ExpressionPromoter : IExpressionPromoter
     {
+        private readonly NumberParser _numberParser;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExpressionPromoter"/> class.
+        /// </summary>
+        /// <param name="config">The ParsingConfig.</param>
+        public ExpressionPromoter(ParsingConfig config)
+        {
+            _numberParser = new NumberParser(config);
+        }
+
         /// <inheritdoc cref="IExpressionPromoter.Promote(Expression, Type, bool, bool)"/>
         public virtual Expression Promote(Expression expr, Type type, bool exact, bool convertExpr)
         {
@@ -13,9 +27,7 @@ namespace System.Linq.Dynamic.Core.Parser
                 return expr;
             }
 
-            var ce = expr as ConstantExpression;
-
-            if (ce != null)
+            if (expr is ConstantExpression ce)
             {
                 if (Constants.IsNull(ce))
                 {
@@ -31,14 +43,14 @@ namespace System.Linq.Dynamic.Core.Parser
                         Type target = TypeHelper.GetNonNullableType(type);
                         object value = null;
 
-#if !(NETFX_CORE || WINDOWS_APP || DOTNET5_1 || UAP10_0 || NETSTANDARD)
+#if !(NETFX_CORE || WINDOWS_APP || UAP10_0 || NETSTANDARD)
                         switch (Type.GetTypeCode(ce.Type))
                         {
                             case TypeCode.Int32:
                             case TypeCode.UInt32:
                             case TypeCode.Int64:
                             case TypeCode.UInt64:
-                                value = TypeHelper.ParseNumber(text, target);
+                                value = _numberParser.ParseNumber(text, target);
 
                                 // Make sure an enum value stays an enum value
                                 if (target.IsEnum)
@@ -48,7 +60,7 @@ namespace System.Linq.Dynamic.Core.Parser
                                 break;
 
                             case TypeCode.Double:
-                                if (target == typeof(decimal)) value = TypeHelper.ParseNumber(text, target);
+                                if (target == typeof(decimal) || target == typeof(double)) value = _numberParser.ParseNumber(text, target);
                                 break;
 
                             case TypeCode.String:
@@ -56,24 +68,26 @@ namespace System.Linq.Dynamic.Core.Parser
                                 break;
                         }
 #else
-                        if (ce.Type == typeof(Int32) || ce.Type == typeof(UInt32) || ce.Type == typeof(Int64) || ce.Type == typeof(UInt64))
+                        if (ce.Type == typeof(int) || ce.Type == typeof(uint) || ce.Type == typeof(long) || ce.Type == typeof(ulong))
                         {
-                            value = TypeHelper.ParseNumber(text, target);
-
-                            // Make sure an enum value stays an enum value
+                            // If target is an enum value, just use the Value from the ConstantExpression
                             if (target.GetTypeInfo().IsEnum)
                             {
-                                value = Enum.ToObject(target, value);
+                                value = Enum.ToObject(target, ce.Value);
                             }
-                        }
-                        else if (ce.Type == typeof(Double))
-                        {
-                            if (target == typeof(decimal))
+                            else
                             {
-                                value = TypeHelper.ParseNumber(text, target);
+                                value = _numberParser.ParseNumber(text, target);
                             }
                         }
-                        else if (ce.Type == typeof(String))
+                        else if (ce.Type == typeof(double))
+                        {
+                            if (target == typeof(decimal) || target == typeof(double))
+                            {
+                                value = _numberParser.ParseNumber(text, target);
+                            }
+                        }
+                        else if (ce.Type == typeof(string))
                         {
                             value = TypeHelper.ParseEnum(text, target);
                         }
